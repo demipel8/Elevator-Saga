@@ -1,17 +1,32 @@
 {
   init: function(elevators, floors) {
+    const demandedFloors = new Set()
     const selectNextFloor = {
       UP: 1,
       DOWN: -1
     }
 
     elevators.forEach(elevator => {
-      this.setupElevator(elevator, selectNextFloor, floors)
+      this.setupElevator(elevator, demandedFloors, selectNextFloor, floors)
     })
+
+    floors.forEach(floor => {
+      floor.on('up_button_pressed', () => {
+        addFloorToQueue(floor.floorNum())
+      })
+
+      floor.on('down_button_pressed', () => {
+        addFloorToQueue(floor.floorNum())
+      })
+    })
+
+    function addFloorToQueue(floorNum) {
+      demandedFloors.add(floorNum)
+    }
   },
-  setupElevator: function(gameElevator, selectNextFloor, floors) {
+  setupElevator: function(gameElevator, floorsSelected, selectNextFloor, floors) {
     const elevator = gameElevator
-    const demandedFloors = new Set()
+    const elevatorButtonsPressed = new Set()
     let direction = "UP"
 
     elevator.on('idle', goToNextFloor)
@@ -22,15 +37,18 @@
     elevator.on('floor_button_pressed', addFloorToQueue)
 
     function goToNextFloor() {
-      if (demandedFloors.size == 0) return elevator.goToFloor(0)
+      var floorsOnDemand = new Set([...elevatorButtonsPressed, ...floorsSelected])
+
+      if (floorsOnDemand.size == 0) return elevator.goToFloor(0)
 
       let nextFloor = (elevator.currentFloor() + selectNextFloor[direction]) % floors.length
 
-      while(!demandedFloors.has(nextFloor)) {
+      while(!floorsOnDemand.has(nextFloor)) {
         nextFloor = Math.abs((nextFloor + selectNextFloor[direction]) % floors.length)
       }
 
-      demandedFloors.delete(nextFloor)
+      elevatorButtonsPressed.delete(nextFloor)
+      floorsSelected.delete(nextFloor)
 
       elevator.goToFloor(nextFloor)
     }
@@ -52,7 +70,7 @@
     }
 
     function addFloorToQueue(floorNum) {
-      demandedFloors.add(floorNum)
+      elevatorButtonsPressed.add(floorNum)
     }
   },
   update: function(dt, elevators, floors) {}
