@@ -1,12 +1,18 @@
 {
   init: function(elevators, floors) {
-    const elevator = elevators[0]
-    const demandedFloors = new Set()
-    let direction = "UP"
     const selectNextFloor = {
       UP: 1,
       DOWN: -1
     }
+
+    elevators.forEach(elevator => {
+      this.setupElevator(elevator, selectNextFloor, floors)
+    })
+  },
+  setupElevator: function(gameElevator, selectNextFloor, floors) {
+    const elevator = gameElevator
+    const demandedFloors = new Set()
+    let direction = "UP"
 
     elevator.on('idle', goToNextFloor)
     elevator.on('stopped_at_floor', function() {
@@ -48,16 +54,6 @@
     function addFloorToQueue(floorNum) {
       demandedFloors.add(floorNum)
     }
-
-    floors.forEach(floor => {
-      floor.on('up_button_pressed', () => {
-        addFloorToQueue(floor.floorNum())
-      })
-
-      floor.on('down_button_pressed', () => {
-        addFloorToQueue(floor.floorNum())
-      })
-    })
   },
   update: function(dt, elevators, floors) {}
 }
