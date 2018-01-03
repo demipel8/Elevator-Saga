@@ -37,7 +37,7 @@
     elevator.on('floor_button_pressed', addFloorToQueue)
 
     function goToNextFloor() {
-      var floorsOnDemand = new Set([...elevatorButtonsPressed, ...floorsSelected])
+      var floorsOnDemand = selectPossibleFloors()
 
       if (floorsOnDemand.size == 0) return elevator.goToFloor(0)
 
@@ -51,6 +51,11 @@
       floorsSelected.delete(nextFloor)
 
       elevator.goToFloor(nextFloor)
+    }
+
+    function selectPossibleFloors() {
+      if (elevator.loadFactor() == 1 ) return new Set([...elevatorButtonsPressed])
+      return new Set([...elevatorButtonsPressed, ...floorsSelected])
     }
 
     function modifyDirectionIfNecessary() {
